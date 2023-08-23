@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
-import 'camerascreen.dart';
+import 'camerabutton.dart'; // Import your CameraButton class
+import 'package:camera/camera.dart'; // Import the camera package
 
 class FloatingScreen extends StatefulWidget {
   @override
@@ -11,11 +11,10 @@ class _FloatingScreenState extends State<FloatingScreen> {
   @override
   void initState() {
     super.initState();
-    // Wait for 3 seconds and then navigate to CameraScreen
     Future.delayed(Duration(seconds: 3), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => CameraScreen()),
+        MaterialPageRoute(builder: (context) => CameraButton()),
       );
     });
   }

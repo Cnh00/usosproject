@@ -1,25 +1,34 @@
+import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:usosproject/showpicture.dart'; // Import the camera package
 
-class CameraScreen extends StatefulWidget {
+import 'DisplayPictureScreen.dart';
+
+class TakePictureScreen extends StatefulWidget {
+  const TakePictureScreen({
+    super.key,
+    required this.camera,
+  });
+
+  final CameraDescription camera;
+
   @override
-  _CameraScreenState createState() => _CameraScreenState();
+  TakePictureScreenState createState() => TakePictureScreenState();
 }
 
-class _CameraScreenState extends State<CameraScreen> {
+class TakePictureScreenState extends State<TakePictureScreen> {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
 
   @override
   void initState() {
     super.initState();
-    // Get a list of available cameras.
-    availableCameras().then((cameras) {
-      // Select the first camera from the list
-      _controller = CameraController(cameras[0], ResolutionPreset.medium);
-      _initializeControllerFuture = _controller.initialize();
-    });
+    _controller = CameraController(
+      widget.camera,
+      ResolutionPreset.medium,
+    );
+
+    _initializeControllerFuture = _controller.initialize();
   }
 
   @override
@@ -31,40 +40,37 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Camera Screen')),
+      appBar: AppBar(title: const Text('Take a picture')),
       body: FutureBuilder<void>(
         future: _initializeControllerFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            return Column(
-              children: [
-                Expanded(
-                  child: CameraPreview(_controller),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    try {
-                      // Take a picture and get the file path
-                      final image = await _controller.takePicture();
-                      // Navigate to ShowPicture page with the image path
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ShowPicture(imagePath: image.path),
-                        ),
-                      );
-                    } catch (e) {
-                      print(e);
-                    }
-                  },
-                  child: Text('Take Picture'),
-                ),
-              ],
-            );
+            return CameraPreview(_controller);
           } else {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          try {
+            await _initializeControllerFuture;
+            final image = await _controller.takePicture();
+
+            if (!mounted) return;
+
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => DisplayPictureScreen(
+                  imagePath: image.path,
+                ),
+              ),
+            );
+          } catch (e) {
+            print(e);
+          }
+        },
+        child: const Icon(Icons.camera_alt),
       ),
     );
   }
